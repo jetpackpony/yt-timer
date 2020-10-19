@@ -1,0 +1,12 @@
+{
+  "name": "YT Timer",
+  "version": "1.0",
+  "description": "Time YT",
+  "manifest_version": 2,
+  "content_scripts": [
+    {
+      "matches": ["*://*.youtube.com/*"],
+      "js": ["content.js"]
+    }
+  ]
+}
