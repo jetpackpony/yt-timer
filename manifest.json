@@ -3,10 +3,22 @@
   "version": "1.0",
   "description": "Time YT",
   "manifest_version": 2,
+  "background": {
+    "scripts": [
+      "background.js"
+    ]
+  },
+  "permissions": [
+    "tabs"
+  ],
   "content_scripts": [
     {
-      "matches": ["*://*.youtube.com/*"],
-      "js": ["content.js"]
+      "matches": [
+        "*://*.youtube.com/*"
+      ],
+      "js": [
+        "content.js"
+      ]
     }
   ]
 }
