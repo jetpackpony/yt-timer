@@ -1,12 +1,41 @@
-// 1) on switching to already YT tab
-// 2) on navigating to YT (onUpdate) && the tab is active
+let counter = 0;
+let lastStart = null;
 
-const startTimer = function startTimer() {
-  console.log("Starting timer");
+const startMessage = (total, startedAt) => {
+  chrome.tabs.query({ active: true, currentWindow: true, url: "*://*.youtube.com/*" }, (tabs) => {
+    if (tabs && tabs[0]) {
+      console.log("Sending message to ", tabs[0]);
+      chrome.tabs.sendMessage(tabs[0].id, { total, startedAt, action: "start" });
+    } else {
+      console.log("Couldn't find YT tab: ", tabs);
+    }
+  });
+};
+
+const stopMessage = () => {
+  chrome.tabs.query({ url: "*://*.youtube.com/*" }, (tabs) => {
+    tabs.forEach((t) => {
+      chrome.tabs.sendMessage(t.id, { action: "stop" });
+    });
+  });
+};
+
+const startTimer = () => {
+  if (!lastStart) {
+    console.log("Starting timer");
+    lastStart = Date.now();
+  }
+  startMessage(counter, lastStart);
 };
 
 const stopTimer = function stopTimer() {
-  console.log("Stopping timer");
+  if (lastStart) {
+    console.log("Stopping timer");
+    counter = counter + (Date.now() - lastStart);
+    console.log(`New total: ${counter}`);
+    lastStart = null;
+    stopMessage();
+  }
 };
 
 const focusedTab = function focusedTab(tabId, windowId) {
@@ -42,6 +71,14 @@ chrome.windows.onFocusChanged.addListener(
       });
     } else {
       unfocusedBrowser();
+    }
+  }
+);
+
+chrome.runtime.onMessage.addListener(
+  (req, sender, sendResponse) => {
+    if (req.action == "get_data") {
+      startTimer();
     }
   }
 );
