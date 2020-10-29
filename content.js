@@ -57,3 +57,5 @@ window.addEventListener("visibilitychange", () => {
 });
 window.addEventListener("focus", () => sendStartSignal());
 window.addEventListener("blur", () => sendStopSignal());
+
+sendStartSignal();
