@@ -12,7 +12,9 @@
   "content_scripts": [
     {
       "matches": [
-        "*://*.youtube.com/*"
+        "*://*.youtube.com/*",
+        "*://*.twitch.tv/*",
+        "*://*.netflix.com/*"
       ],
       "js": [
         "content.js"
