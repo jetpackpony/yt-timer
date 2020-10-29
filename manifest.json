@@ -8,9 +8,7 @@
       "background.js"
     ]
   },
-  "permissions": [
-    "tabs"
-  ],
+  "permissions": [],
   "content_scripts": [
     {
       "matches": [
