@@ -1,10 +1,23 @@
 const counter = document.createElement("div");
-counter.appendChild(document.createTextNode("0 sec"));
+counter.appendChild(document.createTextNode(""));
 counter.setAttribute("id", "counter");
 counter.setAttribute("style", "position: fixed; left: 0px; top: 0px; background: black; z-index: 1000000; color: #ff0000; font-size: 34px;");
 
 document.body.appendChild(counter);
-console.log("done");
+
+let updateInterval = null;
+const startCounter = (seconds) => {
+  updateInterval = setInterval(() => {
+    seconds++;
+    updateCounterHTML(seconds);
+  }, 1000);
+};
+const stopCounter = () => {
+  if (updateInterval) {
+    clearInterval(updateInterval);
+    updateInterval = null;
+  };
+};
 
 const pad = (n) => `${(n < 10) ? "0" : ""}${n}`;
 const updateCounterHTML = (seconds) => {
@@ -23,29 +36,24 @@ const createCounter = (startedAt, total) => {
   startCounter(seconds);
 };
 
-let updateInterval = null;
-const startCounter = (seconds) => {
-  updateInterval = setInterval(() => {
-    seconds++;
-    updateCounterHTML(seconds);
-  }, 1000);
-};
-const stopCounter = () => {
-  if (updateInterval) {
-    clearInterval(updateInterval);
-    updateInterval = null;
-  };
+let c = 0;
+const sendStartSignal = () => {
+  console.log(c++, "Start");
+  chrome.runtime.sendMessage({ action: "start" }, (data) => {
+    createCounter(data.startedAt, data.total);
+  });
 };
 
-chrome.runtime.sendMessage({ action: "get_data" });
+const sendStopSignal = () => {
+  console.log(c++, "Stop");
+  chrome.runtime.sendMessage({ action: "stop" });
+  stopCounter();
+};
 
-chrome.runtime.onMessage.addListener(
-  (data) => {
-    if (data.action === "start") {
-      createCounter(data.startedAt, data.total);
-    }
-    if (data.action === "stop") {
-      stopCounter(data.startedAt, data.total);
-    }
+window.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    sendStopSignal();
   }
-);
+});
+window.addEventListener("focus", () => sendStartSignal());
+window.addEventListener("blur", () => sendStopSignal());
