@@ -1,7 +1,7 @@
 let counter = 0;
 let lastStart = null;
 
-const startTimer = () => {
+const startTimer = async () => {
   if (!lastStart) {
     console.log("Starting timer");
     lastStart = Date.now();
@@ -18,7 +18,7 @@ const stopTimer = function stopTimer() {
 };
 
 chrome.runtime.onMessage.addListener(
-  (req, sender, sendResponse) => {
+  async (req, sender, sendResponse) => {
     switch(req.action) {
       case "start":
         startTimer();
