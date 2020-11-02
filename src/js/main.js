@@ -1,30 +1,47 @@
 import { setupCounter } from './counter.js';
 
+const sendFocusMessage = () => {
+  chrome.runtime.sendMessage({ action: "focus" });
+};
+
+const sendBlurMessage = () => {
+  chrome.runtime.sendMessage({ action: "blur" });
+};
+
 export function main() {
-  const { createCounter, startCounter, stopCounter } = setupCounter();
+  const { createCounter, stopCounter } = setupCounter();
 
+  let focused = true;
   let c = 0;
-  const sendStartSignal = () => {
-    console.log(c++, "Start");
-    chrome.runtime.sendMessage({ action: "start" }, (data) => {
-      createCounter(data.startedAt, data.total);
-    });
-  };
+  chrome.runtime.onMessage.addListener(
+    (data, sender, sendResponse) => {
+      if (data.action === "start" && focused) {
+        console.log(c++, "Start", data);
+        createCounter(data.startedAt, data.total);
+      }
+      sendResponse("Thank you, very nice");
+    }
+  );
 
-  const sendStopSignal = () => {
-    console.log(c++, "Stop");
-    chrome.runtime.sendMessage({ action: "stop" });
+  const onFocus = () => {
+    sendFocusMessage();
+    focused = true;
+  };
+  const onBlur = () => {
+    sendBlurMessage();
+    focused = false;
     stopCounter();
+    console.log(c++, "Stop");
   };
 
   window.addEventListener("visibilitychange", () => {
     if (document.hidden) {
-      sendStopSignal();
+      onBlur();
     }
   });
-  window.addEventListener("focus", () => sendStartSignal());
-  window.addEventListener("blur", () => sendStopSignal());
-  window.addEventListener("unload", () => sendStopSignal());
+  window.addEventListener("focus", () => onFocus());
+  window.addEventListener("blur", () => onBlur());
+  window.addEventListener("unload", () => onBlur());
 
-  sendStartSignal();
+  onFocus();
 }
