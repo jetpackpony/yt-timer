@@ -1,28 +1,4 @@
-let counter = 0;
-let lastStart = null;
-
-const getData = async () => {
-  return new Promise((resolve, reject) => {
-    chrome.storage.local.get({ total: 0, startedAt: null }, (data) => {
-      resolve(data);
-    });
-  });
-};
-
-const setStartedAt = async (value) => {
-  return new Promise((resolve, reject) => {
-    chrome.storage.local.set({ startedAt: value }, () => {
-      resolve(value);
-    });
-  });
-};
-const setData = async (data) => {
-  return new Promise((resolve, reject) => {
-    chrome.storage.local.set(data, () => {
-      resolve(data);
-    });
-  });
-};
+import { getData, setData, setStartedAt } from './storage.js';
 
 const startTimer = async () => {
   let { total, startedAt } = await getData();
@@ -39,18 +15,15 @@ const stopTimer = async () => {
     console.log("Stopping timer");
     const newTotal = total + (Date.now() - startedAt);
     console.log(`New total: ${newTotal}`);
-    setData({ total: newTotal, startedAt: null });
+    await setData({ total: newTotal, startedAt: null });
   }
 };
 
-const sendStartMessage = async (tabId, data) => {
-  new Promise((resolve, reject) => {
-    chrome.tabs.sendMessage(tabId, { action: "start", ...data }, () => {
-      resolve();
-    });
-  });
+const sendStartMessage = (tabId, data) => {
+  chrome.tabs.sendMessage(tabId, { action: "start", ...data });
 };
 
+// Listen for tabs' focus/blur events
 chrome.runtime.onMessage.addListener(
   async (req, sender, sendResponse) => {
     switch(req.action) {

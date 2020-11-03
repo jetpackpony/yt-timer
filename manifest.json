@@ -4,9 +4,7 @@
   "description": "Time YT",
   "manifest_version": 2,
   "background": {
-    "scripts": [
-      "src/js/background.js"
-    ]
+    "page": "src/html/background.html"
   },
   "permissions": ["storage"],
   "content_scripts": [
