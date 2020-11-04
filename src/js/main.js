@@ -1,47 +1,54 @@
-import { setupCounter } from './counter.js';
+import { setupTimer } from './timer.js';
+import FocusState from './FocusState.js';
 
-const sendFocusMessage = () => {
-  chrome.runtime.sendMessage({ action: "focus" });
+const sendStartMessage = async () => {
+  return new Promise((resolve, reject) => {
+    chrome.runtime.sendMessage({ action: "start" }, (data) => {
+      resolve(data);
+    });
+  });
 };
 
-const sendBlurMessage = () => {
-  chrome.runtime.sendMessage({ action: "blur" });
+const sendStopMessage = () => {
+  return new Promise((resolve, reject) => {
+    chrome.runtime.sendMessage({ action: "stop" }, () => {
+      resolve();
+    });
+  });
 };
 
 export function main() {
-  const { createCounter, stopCounter } = setupCounter();
-
-  let focused = true;
-  let c = 0;
-  chrome.runtime.onMessage.addListener(
-    (data, sender, sendResponse) => {
-      if (data.action === "start" && focused) {
-        console.log(c++, "Start", data);
-        createCounter(data.startedAt, data.total);
+  const { startTimer, stopTimer } = setupTimer();
+  let beginStartSequence = false;
+  const startSequence = () => {
+    beginStartSequence = true;
+    // This delay in necessary because sometimes focus/blur events fire in quick
+    // succession within ~30ms between each other
+    setTimeout(async () => {
+      if (beginStartSequence) {
+        console.log("Starting timer...");
+        const { startedAt, total } = await sendStartMessage();
+        console.log(`startedAt: ${startedAt}, total: ${total}`);
+        startTimer(startedAt, total);
       }
-      sendResponse("Thank you, very nice");
-    }
-  );
-
-  const onFocus = () => {
-    sendFocusMessage();
-    focused = true;
+    }, 200);
   };
-  const onBlur = () => {
-    sendBlurMessage();
-    focused = false;
-    stopCounter();
-    console.log(c++, "Stop");
+  const stopSequence = async () => {
+    console.log("Stopping timer...");
+    beginStartSequence = false;
+    await sendStopMessage();
+    stopTimer();
+  };
+  const updateTimerState = async (isFocused) => {
+    if (isFocused) {
+      await startSequence();
+    } else {
+      await stopSequence();
+    }
   };
 
-  window.addEventListener("visibilitychange", () => {
-    if (document.hidden) {
-      onBlur();
-    }
-  });
-  window.addEventListener("focus", () => onFocus());
-  window.addEventListener("blur", () => onBlur());
-  window.addEventListener("unload", () => onBlur());
+  const focusState = new FocusState(window, document);
+  focusState.on("change", () => updateTimerState(focusState.isFocused()));
 
-  onFocus();
+  startSequence();
 }

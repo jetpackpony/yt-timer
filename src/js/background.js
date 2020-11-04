@@ -39,21 +39,23 @@ const stopTimer = async () => {
   }
 };
 
-const sendStartMessage = (tabId, data) => {
-  chrome.tabs.sendMessage(tabId, { action: "start", ...data });
-};
-
-// Listen for tabs' focus/blur events
+// Listen for tabs' start/stop events
 chrome.runtime.onMessage.addListener(
-  async (req, sender, sendResponse) => {
+  // This callback has to return true to be able to call sendResponse asynchronously
+  // See https://developer.chrome.com/extensions/runtime#event-onMessage
+  (req, sender, sendResponse) => {
     switch(req.action) {
-      case "focus":
-        const { total, startedAt } = await startTimer();
-        sendStartMessage(sender.tab.id, { total, startedAt });
-        break;
-      case "blur":
-        stopTimer();
-        break;
+      case "start":
+        startTimer()
+          .then(({ total, startedAt }) => {
+            console.log("Sending reposnse...", total, startedAt);
+            sendResponse({ total, startedAt });
+          });
+        return true;
+      case "stop":
+        stopTimer()
+          .then(() => sendResponse());
+        return true;
       default:
         console.log("Unknown action: ", req);
     }
