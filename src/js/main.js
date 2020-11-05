@@ -1,5 +1,6 @@
 import { setupTimer } from './timer.js';
 import FocusStateEmitter from './FocusStateEmitter.js';
+import VideoStateEmitter from './VideoStateEmitter.js';
 
 const sendStartMessage = async () => {
   return new Promise((resolve, reject) => {
@@ -39,16 +40,19 @@ export function main() {
     await sendStopMessage();
     stopTimer();
   };
-  const updateTimerState = async (isFocused) => {
-    if (isFocused) {
+  const focusState = new FocusStateEmitter(window, document);
+  focusState.on("change", () => updateTimerState());
+
+  const videoState = new VideoStateEmitter(window, document);
+  videoState.on("change", () => updateTimerState());
+
+  const updateTimerState = async () => {
+    if (videoState.isPlaying() && focusState.isFocused()) {
       await startSequence();
     } else {
       await stopSequence();
     }
   };
 
-  const focusState = new FocusStateEmitter(window, document);
-  focusState.on("change", () => updateTimerState(focusState.isFocused()));
-
-  startSequence();
+  updateTimerState();
 }
