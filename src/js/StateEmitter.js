@@ -7,7 +7,9 @@ class StateEmitter {
   }
 
   emit(eventName, ...args) {
-    this.#subscriptions[eventName].forEach((fn) => fn(...args));
+    if (this.#subscriptions[eventName]) {
+      this.#subscriptions[eventName].forEach((fn) => fn(...args));
+    }
   }
 
   on(eventName, fn) {
