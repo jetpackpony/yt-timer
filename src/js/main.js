@@ -1,5 +1,5 @@
 import { setupTimer } from './timer.js';
-import FocusState from './FocusState.js';
+import FocusStateEmitter from './FocusStateEmitter.js';
 
 const sendStartMessage = async () => {
   return new Promise((resolve, reject) => {
@@ -47,7 +47,7 @@ export function main() {
     }
   };
 
-  const focusState = new FocusState(window, document);
+  const focusState = new FocusStateEmitter(window, document);
   focusState.on("change", () => updateTimerState(focusState.isFocused()));
 
   startSequence();

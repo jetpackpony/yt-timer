@@ -1,10 +1,10 @@
-class FocusState {
+import StateEmitter from "./StateEmitter.js";
+
+class FocusState extends StateEmitter{
   #focused = true;
-  #subscriptions = {};
 
   constructor(w = window, d = document) {
-    this.window = w;
-    this.document = d;
+    super(w, d);
 
     this.window.addEventListener("visibilitychange", () => {
       if (this.document.hidden) {
@@ -21,23 +21,12 @@ class FocusState {
     this.#focused = isFocused;
     if (changed) {
       console.log("Changed focused to: ", isFocused);
-      this.emit("change");
+      this.emit("change", isFocused);
     }
   }
 
   isFocused() {
     return this.#focused;
-  }
-
-  emit(eventName) {
-    this.#subscriptions[eventName].forEach((fn) => fn());
-  }
-
-  on(eventName, fn) {
-    if (!Array.isArray(this.#subscriptions[eventName])) {
-      this.#subscriptions[eventName] = [];
-    }
-    this.#subscriptions[eventName].push(fn);
   }
 }
 
