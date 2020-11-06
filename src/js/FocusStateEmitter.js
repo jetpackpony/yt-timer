@@ -1,6 +1,6 @@
 import StateEmitter from "./StateEmitter.js";
 
-class FocusState extends StateEmitter{
+class FocusState extends StateEmitter {
   #focused = true;
 
   constructor(w = window, d = document) {
@@ -11,9 +11,18 @@ class FocusState extends StateEmitter{
         this.updateFocus(false);
       }
     });
-    this.window.addEventListener("focus", () => this.updateFocus(true));
-    this.window.addEventListener("blur", () => this.updateFocus(false));
-    this.window.addEventListener("unload", () => this.updateFocus(false));
+    this.window.addEventListener("focus", () => {
+      this.updateFocus(true)
+    });
+    this.window.addEventListener("blur", () => {
+      // If user clicked on an iframe, ignore this event
+      if (document.activeElement.tagName !== "IFRAME") {
+        this.updateFocus(false)
+      }
+    });
+    this.window.addEventListener("unload", () => {
+      this.updateFocus(false)
+    });
   }
 
   updateFocus(isFocused) {
