@@ -56,6 +56,13 @@ chrome.runtime.onMessage.addListener(
         stopTimer()
           .then(() => sendResponse());
         return true;
+      case "getData":
+        getData()
+          .then(({ total, startedAt }) => {
+            console.log("Sending reposnse...", total, startedAt);
+            sendResponse({ total, startedAt });
+          });
+        return true;
       default:
         console.log("Unknown action: ", req);
     }

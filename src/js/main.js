@@ -2,6 +2,14 @@ import { setupTimer } from './timer.js';
 import FocusStateEmitter from './FocusStateEmitter.js';
 import VideoStateEmitter from './VideoStateEmitter.js';
 
+const getTimerData = async () => {
+  return new Promise((resolve, reject) => {
+    chrome.runtime.sendMessage({ action: "getData" }, (data) => {
+      resolve(data);
+    });
+  });
+};
+
 const sendStartMessage = async () => {
   return new Promise((resolve, reject) => {
     chrome.runtime.sendMessage({ action: "start" }, (data) => {
@@ -19,7 +27,7 @@ const sendStopMessage = () => {
 };
 
 export function main() {
-  const { startTimer, stopTimer } = setupTimer();
+  const { startTimer, stopTimer, updateTimer } = setupTimer();
   let beginStartSequence = false;
   const startSequence = () => {
     beginStartSequence = true;
@@ -47,6 +55,8 @@ export function main() {
   videoState.on("change", () => updateTimerState());
 
   const updateTimerState = async () => {
+    const { startedAt, total } = await getTimerData();
+    updateTimer(startedAt, total);
     if (videoState.isPlaying() && focusState.isFocused()) {
       await startSequence();
     } else {

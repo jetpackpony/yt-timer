@@ -1,5 +1,7 @@
 
 const pad = (n) => `${(n < 10) ? "0" : ""}${n}`;
+const calcSeconds = (startedAt, total) =>
+    Math.round(((startedAt) ? (Date.now() - startedAt + total) : total) / 1000);
 
 const setupTimer = () => {
   const timer = document.createElement("div");
@@ -17,7 +19,7 @@ const setupTimer = () => {
     };
   };
   const startTimer = (startedAt, total) => {
-    let seconds = Math.round((Date.now() - startedAt + total) / 1000);
+    let seconds = calcSeconds(startedAt, total);
     updateTimerHTML(seconds);
     if (updateInterval) {
       stopTimer();
@@ -26,6 +28,13 @@ const setupTimer = () => {
       seconds++;
       updateTimerHTML(seconds);
     }, 1000);
+  };
+  const updateTimer = (startedAt, total) => {
+    if (startedAt) {
+      startTimer(startedAt, total);
+    } else {
+      updateTimerHTML(calcSeconds(startedAt, total));
+    }
   };
 
   const updateTimerHTML = (seconds) => {
@@ -36,7 +45,7 @@ const setupTimer = () => {
     timer.innerHTML = `${hours}:${pad(mins)}:${pad(secs)}`;
   };
 
-  return { startTimer, stopTimer };
+  return { startTimer, stopTimer, updateTimer };
 };
 
 export { setupTimer };
